@@ -175,7 +175,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-hidden px-4 pt-5 pb-24 md:px-6 md:pb-6">
+        <main className="min-h-0 flex-1 overflow-y-auto px-4 pt-5 pb-24 md:px-6 md:pb-6">
           {children}
         </main>
       </div>

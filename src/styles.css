@@ -179,3 +179,10 @@
     color: var(--color-foreground);
   }
 }
+a[href*="netlify.com"],
+.netlify-badge,
+[class*="netlify-badge"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
