@@ -172,7 +172,7 @@ function Dashboard() {
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-neutral-300 text-xs font-semibold tracking-wide text-neutral-600 uppercase">
+                  <tr className="bg-[var(--color-primary-100)] border-b border-neutral-300 text-xs font-semibold tracking-wide text-neutral-600 uppercase">
                     <th className="px-4 py-3">Sitio / ID</th>
                     <th className="px-4 py-3">Ciudad / Estado</th>
                     <th className="px-4 py-3">Categoría</th>
