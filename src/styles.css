@@ -179,10 +179,13 @@
     color: var(--color-foreground);
   }
 }
-a[href*="netlify.com"],
+#netlify-drop-element,
+iframe[src*="netlify"],
 .netlify-badge,
-[class*="netlify-badge"] {
+a[href*="netlify.com"],
+div[class*="netlify"] {
   display: none !important;
   visibility: hidden !important;
+  opacity: 0 !important;
   pointer-events: none !important;
 }
