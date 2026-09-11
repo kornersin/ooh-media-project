@@ -48,12 +48,8 @@ export function RegistroDrawer({
 }) {
   const { rol, actualizar } = useApp();
   const [form, setForm] = useState<Registro | null>(registro);
-  const [tab, setTab] = useState<"detalles" | "fotos" | "historial">("detalles");
 
-  useEffect(() => {
-    setForm(registro);
-    setTab("detalles");
-  }, [registro]);
+  useEffect(() => setForm(registro), [registro]);
 
   if (!registro || !form) return null;
 
@@ -67,43 +63,12 @@ export function RegistroDrawer({
     onClose();
   };
 
-  const TABS = [
-    { id: "detalles", label: "Detalles" },
-    { id: "fotos", label: "Fotos / Evidencias" },
-    { id: "historial", label: "Historial de Cambios" },
-  ] as const;
-
-  const historial = [
-    { fecha: "10 sep 2026 · 14:20", texto: "Arte publicitario actualizado", autor: "Agencia" },
-    { fecha: "02 sep 2026 · 09:05", texto: "Campaña asignada al sitio", autor: "Agencia" },
-    { fecha: "28 ago 2026 · 17:41", texto: "Renta mensual modificada", autor: "Dueño de Medio" },
-    { fecha: "15 ago 2026 · 11:12", texto: "Sitio dado de alta en inventario", autor: "Sistema" },
-  ];
-
   return (
     <Drawer
       abierto
       onClose={onClose}
       titulo={form.nombre}
       subtitulo={`${form.id} · ${form.ciudad}, ${form.estado}`}
-      encabezadoExtra={
-        <div className="mt-3 flex gap-1 overflow-x-auto border-b border-neutral-200">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={cn(
-                "-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-medium transition-colors",
-                tab === t.id
-                  ? "border-[#43327B] text-[#43327B]"
-                  : "border-transparent text-neutral-500 hover:text-neutral-800",
-              )}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-      }
       footer={
         p.soloLectura ? (
           <BotonPrimario onClick={onClose}>Cerrar</BotonPrimario>
@@ -115,50 +80,12 @@ export function RegistroDrawer({
         )
       }
     >
-      {tab === "fotos" && (
-        <section className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-4">
-          <h3 className="text-sm font-semibold text-neutral-900">Fotos / Evidencias</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {["Vista frontal", "Vista lateral", "Instalación", "Evidencia nocturna"].map((t) => (
-              <div
-                key={t}
-                className="flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-300 bg-neutral-100 text-center"
-              >
-                <FileImage className="size-6 text-neutral-500" />
-                <p className="px-2 text-xs text-neutral-600">{t}</p>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-neutral-500">4 evidencias cargadas · última carga 10 sep 2026</p>
-        </section>
-      )}
-
-      {tab === "historial" && (
-        <section className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-4">
-          <h3 className="text-sm font-semibold text-neutral-900">Historial de Cambios</h3>
-          <ol className="space-y-4 border-l border-neutral-200 pl-4">
-            {historial.map((h) => (
-              <li key={h.fecha} className="relative">
-                <span className="absolute top-1.5 -left-[21px] size-2.5 rounded-full bg-primary-700" />
-                <p className="text-sm font-medium text-neutral-900">{h.texto}</p>
-                <p className="text-xs text-neutral-500">
-                  {h.fecha} · {h.autor}
-                </p>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-
-      {tab === "detalles" && (
-      <>
       <div className="flex flex-wrap items-center gap-2">
         <EstatusBadge valor={form.estatus} />
         {form.estatusCampana && !ocultarComercial && (
           <EstatusBadge valor={form.estatusCampana} />
         )}
       </div>
-
 
       <section className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-4">
         <h3 className="text-sm font-semibold text-neutral-900">Especificaciones del sitio</h3>
@@ -322,9 +249,6 @@ export function RegistroDrawer({
           </button>
         </section>
       )}
-      </>
-      )}
     </Drawer>
-
   );
 }

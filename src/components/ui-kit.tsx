@@ -374,7 +374,6 @@ export function Drawer({
   onClose,
   titulo,
   subtitulo,
-  encabezadoExtra,
   children,
   footer,
 }: {
@@ -382,7 +381,6 @@ export function Drawer({
   onClose: () => void;
   titulo: string;
   subtitulo?: string;
-  encabezadoExtra?: ReactNode;
   children: ReactNode;
   footer: ReactNode;
 }) {
@@ -408,24 +406,20 @@ export function Drawer({
           "md:top-0 md:left-auto md:h-full md:max-h-none md:w-[520px] md:rounded-none md:rounded-l-3xl md:slide-in-from-right",
         )}
       >
-        <div className="border-b border-neutral-300 px-5 py-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <h2 className="truncate text-lg font-semibold text-neutral-900">{titulo}</h2>
-              {subtitulo && <p className="truncate text-sm text-neutral-600">{subtitulo}</p>}
-            </div>
-            <button
-              onClick={onClose}
-              aria-label="Cerrar"
-              className="shrink-0 rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-200"
-            >
-              <X className="size-5" />
-            </button>
+        <div className="flex items-start justify-between gap-4 border-b border-neutral-300 px-5 py-4">
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-semibold text-neutral-900">{titulo}</h2>
+            {subtitulo && <p className="truncate text-sm text-neutral-600">{subtitulo}</p>}
           </div>
-          {encabezadoExtra}
+          <button
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="shrink-0 rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-200"
+          >
+            <X className="size-5" />
+          </button>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">{children}</div>
-
         <div className="flex flex-wrap justify-end gap-3 border-t border-neutral-300 bg-neutral-100 px-5 py-4">
           {footer}
         </div>
