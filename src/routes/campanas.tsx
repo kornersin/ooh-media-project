@@ -188,7 +188,7 @@ function Campanas() {
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-neutral-300 text-xs font-semibold tracking-wide text-neutral-600 uppercase">
+                  <tr className="border-b border-neutral-300 bg-[#EAE3FA] text-xs font-semibold tracking-wide text-slate-600 uppercase">
                     <th className="px-4 py-3">Campaña / ID</th>
                     <th className="px-4 py-3">{segundaColumna}</th>
                     <th className="px-4 py-3">Vigencia</th>
