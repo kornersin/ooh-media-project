@@ -12,6 +12,8 @@ export const ROLES: { id: Rol; label: string; dot: string }[] = [
 interface Ctx {
   rol: Rol;
   setRol: (r: Rol) => void;
+  sidebarExpandido: boolean;
+  setSidebarExpandido: (expandido: boolean) => void;
   registros: Registro[];
   actualizar: (id: string, cambios: Partial<Registro>) => void;
   busquedaGlobal: string;
@@ -22,6 +24,7 @@ const AppCtx = createContext<Ctx | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [rol, setRol] = useState<Rol>("dueno");
+  const [sidebarExpandido, setSidebarExpandido] = useState(false);
   const [registros, setRegistros] = useState<Registro[]>(() => generarRegistros());
   const [busquedaGlobal, setBusquedaGlobal] = useState("");
 
@@ -29,13 +32,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       rol,
       setRol,
+      sidebarExpandido,
+      setSidebarExpandido,
       registros,
       busquedaGlobal,
       setBusquedaGlobal,
       actualizar: (id, cambios) =>
         setRegistros((prev) => prev.map((r) => (r.id === id ? { ...r, ...cambios } : r))),
     }),
-    [rol, registros, busquedaGlobal],
+    [rol, sidebarExpandido, registros, busquedaGlobal],
   );
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;

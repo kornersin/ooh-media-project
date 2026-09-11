@@ -17,11 +17,27 @@ const NAV = [
   { to: "/campanas", label: "Campañas", icon: Megaphone },
 ] as const;
 
-function RoleSwitcher({ compacto }: { compacto?: boolean }) {
+function Tooltip({ children, texto }: { children: ReactNode; texto: string }) {
+  return (
+    <span className="group/tooltip relative flex">
+      {children}
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute top-1/2 left-full z-50 ml-3 -translate-y-1/2 rounded-md bg-primary-900 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-neutral-50 opacity-0 shadow-sm transition-opacity group-hover/tooltip:opacity-100 group-focus-within/tooltip:opacity-100"
+      >
+        {texto}
+      </span>
+    </span>
+  );
+}
+
+function RoleSwitcher({ compacto, abrirArriba }: { compacto?: boolean; abrirArriba?: boolean }) {
   const { rol, setRol } = useApp();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const activo = ROLES.find((r) => r.id === rol)!;
+  const activo = ROLES.find((r) => r.id === rol) ?? ROLES[0];
+
+  if (!activo) return null;
 
   useEffect(() => {
     if (!open) return;
@@ -43,7 +59,12 @@ function RoleSwitcher({ compacto }: { compacto?: boolean }) {
         <ChevronDown className="size-4 shrink-0 text-neutral-500" />
       </button>
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-72 rounded-xl border border-neutral-300 bg-white p-1.5 shadow-xl">
+        <div
+          className={cn(
+            "absolute right-0 z-50 w-72 rounded-xl border border-primary-border bg-white p-1.5 shadow-xl",
+            abrirArriba ? "bottom-full mb-2 origin-bottom" : "top-full mt-2 origin-top",
+          )}
+        >
           {ROLES.map((r) => (
             <button
               key={r.id}
@@ -67,25 +88,24 @@ function RoleSwitcher({ compacto }: { compacto?: boolean }) {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const [expandido, setExpandido] = useState(true);
-  const { busquedaGlobal, setBusquedaGlobal } = useApp();
+  const { busquedaGlobal, setBusquedaGlobal, sidebarExpandido, setSidebarExpandido } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <div className="min-h-screen bg-neutral-50 font-sans">
+    <div className="h-screen overflow-hidden bg-neutral-50 font-sans">
       {/* Sidebar Bento flotante — solo escritorio */}
       <aside
         className={cn(
-          "fixed top-4 bottom-4 left-4 z-30 hidden flex-col rounded-3xl bg-primary-900 p-3 transition-all duration-300 md:flex",
-          expandido ? "w-60" : "w-[4.5rem]",
+          "fixed top-4 bottom-4 left-4 z-30 hidden flex-col rounded-3xl border border-primary-border bg-neutral-50 p-3 shadow-sm transition-all duration-300 md:flex",
+          sidebarExpandido ? "w-60" : "w-[4.5rem]",
         )}
       >
         <div className="mb-6 flex items-center gap-2.5 px-2 pt-2">
           <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary-600 text-sm font-black text-primary-900">
             OO
           </div>
-          {expandido && (
-            <span className="truncate text-sm font-bold tracking-wide text-neutral-50">
+          {sidebarExpandido && (
+            <span className="truncate text-sm font-bold tracking-wide text-primary-900">
               OOH Manager
             </span>
           )}
@@ -95,37 +115,45 @@ export function AppShell({ children }: { children: ReactNode }) {
           {NAV.map((item) => {
             const activo = pathname === item.to;
             return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                  activo
-                    ? "bg-primary-700 text-neutral-50"
-                    : "text-primary-200 hover:bg-primary-700/50",
-                )}
-              >
-                <item.icon className="size-5 shrink-0" />
-                {expandido && <span className="truncate">{item.label}</span>}
-              </Link>
+              <Tooltip key={item.to} texto={item.label}>
+                <Link
+                  to={item.to}
+                  aria-label={item.label}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                    activo
+                      ? "bg-primary-700 text-neutral-50"
+                      : "text-primary-900 hover:bg-primary-100",
+                  )}
+                >
+                  <item.icon className="size-5 shrink-0" />
+                  {sidebarExpandido && <span className="truncate">{item.label}</span>}
+                </Link>
+              </Tooltip>
             );
           })}
         </nav>
 
         <button
-          onClick={() => setExpandido(!expandido)}
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary-200 transition-colors hover:bg-primary-700/50"
+          onClick={() => setSidebarExpandido(!sidebarExpandido)}
+          aria-label={sidebarExpandido ? "Colapsar barra lateral" : "Expandir barra lateral"}
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary-900 transition-colors hover:bg-primary-100"
         >
-          {expandido ? (
+          {sidebarExpandido ? (
             <PanelLeftClose className="size-5 shrink-0" />
           ) : (
             <PanelLeftOpen className="size-5 shrink-0" />
           )}
-          {expandido && <span>Colapsar</span>}
+          {sidebarExpandido && <span>Colapsar</span>}
         </button>
       </aside>
 
-      <div className={cn("transition-all duration-300", expandido ? "md:pl-68" : "md:pl-24")}>
+      <div
+        className={cn(
+          "flex h-full min-h-0 flex-col transition-all duration-300",
+          sidebarExpandido ? "md:pl-68" : "md:pl-24",
+        )}
+      >
         {/* Top bar */}
         <header className="sticky top-0 z-20 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-neutral-200 bg-neutral-50/90 px-4 py-3 backdrop-blur-md md:flex md:gap-6 md:px-6">
           <div className="relative min-w-0 md:mx-auto md:w-full md:max-w-xl">
@@ -147,11 +175,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="px-4 pt-5 pb-28 md:px-6 md:pb-8">{children}</main>
+        <main className="min-h-0 flex-1 overflow-hidden px-4 pt-5 pb-24 md:px-6 md:pb-6">
+          {children}
+        </main>
       </div>
 
       {/* Barra inferior — solo móvil */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 items-center gap-1 border-t border-neutral-200 bg-white px-2 py-2 md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-3 items-center gap-1 border-t border-neutral-200 bg-white px-2 py-2 md:hidden">
         {NAV.map((item) => {
           const activo = pathname === item.to;
           return (
@@ -169,7 +199,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           );
         })}
         <div className="flex justify-center">
-          <RoleSwitcher compacto />
+          <RoleSwitcher compacto abrirArriba />
         </div>
       </nav>
     </div>
