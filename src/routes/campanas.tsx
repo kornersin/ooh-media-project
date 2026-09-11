@@ -4,6 +4,7 @@ import { SlidersHorizontal } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { RegistroDrawer } from "@/components/RegistroDrawer";
 import {
+  DateRangePicker,
   EstadoVacio,
   EstatusBadge,
   MultiSelect,
@@ -11,84 +12,100 @@ import {
 } from "@/components/ui-kit";
 import { useApp } from "@/lib/app-state";
 import {
-  CATEGORIAS,
   CIUDADES,
-  DUENOS,
-  ESTATUS_SITIO,
+  ESTATUS_CAMPANA,
+  MARCAS,
+  MARCAS_AGENCIA,
   MARCAS_ALSEA,
+  formatoFecha,
   type Registro,
 } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/campanas")({
   head: () => ({
     meta: [
-      { title: "Inventario de Sitios OOH | Plataforma de Medios" },
+      { title: "Campañas Publicitarias OOH | Plataforma de Medios" },
       {
         name: "description",
         content:
-          "Administra tu inventario de medios exteriores: espectaculares, pantallas digitales y vallas con control de accesos por rol.",
+          "Consulta vigencias, marcas y estatus de las campañas de medios exteriores activas, programadas y concluidas.",
       },
-      { property: "og:title", content: "Inventario de Sitios OOH" },
+      { property: "og:title", content: "Campañas Publicitarias OOH" },
       {
         property: "og:description",
-        content: "Dashboard de gestión de medios exteriores con filtros, roles y campañas.",
+        content: "Seguimiento de campañas OOH por marca, ubicación, vigencia y estatus.",
       },
     ],
   }),
-  component: Dashboard,
+  component: Campanas,
 });
 
 const POR_PAGINA = 10;
 
-function Dashboard() {
+function Campanas() {
   const { rol, registros, busquedaGlobal } = useApp();
   const [busqueda, setBusqueda] = useState("");
   const [ciudades, setCiudades] = useState<string[]>([]);
-  const [categorias, setCategorias] = useState<string[]>([]);
+  const [marcas, setMarcas] = useState<string[]>([]);
   const [estatus, setEstatus] = useState<string[]>([]);
-  const [duenos, setDuenos] = useState<string[]>([]);
+  const [desde, setDesde] = useState<string | null>(null);
+  const [hasta, setHasta] = useState<string | null>(null);
   const [pagina, setPagina] = useState(1);
   const [abierto, setAbierto] = useState<Registro | null>(null);
   const [filtrosMovil, setFiltrosMovil] = useState(false);
 
+  const marcasDisponibles =
+    rol === "marca" ? MARCAS_ALSEA : rol === "agencia" ? MARCAS_AGENCIA : MARCAS;
+
   const limpiar = () => {
     setBusqueda("");
     setCiudades([]);
-    setCategorias([]);
+    setMarcas([]);
     setEstatus([]);
-    setDuenos([]);
+    setDesde(null);
+    setHasta(null);
     setPagina(1);
   };
 
   const visibles = useMemo(() => {
     const q = `${busqueda} ${busquedaGlobal}`.trim().toLowerCase();
     return registros.filter((r) => {
-      if (rol === "marca") {
-        const permitido = !r.marca || MARCAS_ALSEA.includes(r.marca);
-        if (!permitido) return false;
-      }
-      if (q && !(`${r.nombre} ${r.id}`.toLowerCase().includes(q))) return false;
+      if (!r.campana || !r.marca) return false;
+      if (!marcasDisponibles.includes(r.marca)) return false;
+      if (q && !`${r.campana} ${r.campanaId}`.toLowerCase().includes(q)) return false;
       if (ciudades.length && !ciudades.includes(r.ciudad)) return false;
-      if (categorias.length && !categorias.includes(r.categoria)) return false;
-      if (estatus.length && !estatus.includes(r.estatus)) return false;
-      if (duenos.length && !duenos.includes(r.dueno)) return false;
+      if (marcas.length && !marcas.includes(r.marca)) return false;
+      if (estatus.length && !estatus.includes(r.estatusCampana ?? "")) return false;
+      if (desde && r.fin && r.fin < desde) return false;
+      if (hasta && r.inicio && r.inicio > hasta) return false;
       return true;
     });
-  }, [registros, rol, busqueda, busquedaGlobal, ciudades, categorias, estatus, duenos]);
+  }, [
+    registros,
+    marcasDisponibles,
+    busqueda,
+    busquedaGlobal,
+    ciudades,
+    marcas,
+    estatus,
+    desde,
+    hasta,
+  ]);
 
   const totalPaginas = Math.max(1, Math.ceil(visibles.length / POR_PAGINA));
   const paginaActual = Math.min(pagina, totalPaginas);
   const filas = visibles.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA);
   const accion = rol === "marca" ? "Ver más" : "Editar";
+  const segundaColumna = rol === "dueno" ? "Ubicación" : "Marca";
 
   return (
     <AppShell>
       <div className="mb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-          Inventario de Sitios
-        </h1>
+        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Campañas</h1>
         <p className="mt-1 text-sm text-neutral-600">
-          {visibles.length.toLocaleString("es-MX")} sitios disponibles según tu rol activo
+          {rol === "marca"
+            ? "Vista corporativa unificada de Grupo Alsea y sus sub-marcas"
+            : `${visibles.length.toLocaleString("es-MX")} campañas en tu portafolio`}
         </p>
       </div>
 
@@ -135,29 +152,29 @@ function Dashboard() {
               }}
             />
             <MultiSelect
-              etiqueta="Categoría"
-              opciones={CATEGORIAS}
-              valores={categorias}
+              etiqueta="Marca"
+              opciones={marcasDisponibles}
+              valores={marcas}
               onChange={(v) => {
-                setCategorias(v);
+                setMarcas(v);
+                setPagina(1);
+              }}
+            />
+            <DateRangePicker
+              desde={desde}
+              hasta={hasta}
+              onChange={(d, h) => {
+                setDesde(d);
+                setHasta(h);
                 setPagina(1);
               }}
             />
             <MultiSelect
               etiqueta="Estatus"
-              opciones={ESTATUS_SITIO}
+              opciones={ESTATUS_CAMPANA}
               valores={estatus}
               onChange={(v) => {
                 setEstatus(v);
-                setPagina(1);
-              }}
-            />
-            <MultiSelect
-              etiqueta="Dueño de Medio"
-              opciones={DUENOS}
-              valores={duenos}
-              onChange={(v) => {
-                setDuenos(v);
                 setPagina(1);
               }}
             />
@@ -168,14 +185,13 @@ function Dashboard() {
           <EstadoVacio onLimpiar={limpiar} />
         ) : (
           <>
-            {/* Tabla escritorio */}
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-neutral-300 text-xs font-semibold tracking-wide text-neutral-600 uppercase">
-                    <th className="px-4 py-3">Sitio / ID</th>
-                    <th className="px-4 py-3">Ciudad / Estado</th>
-                    <th className="px-4 py-3">Categoría</th>
+                    <th className="px-4 py-3">Campaña / ID</th>
+                    <th className="px-4 py-3">{segundaColumna}</th>
+                    <th className="px-4 py-3">Vigencia</th>
                     <th className="px-4 py-3">Estatus</th>
                     <th className="px-4 py-3">Dueño de Medios</th>
                     <th className="px-4 py-3 text-right" />
@@ -188,16 +204,17 @@ function Dashboard() {
                       className="border-b border-neutral-200 transition-colors last:border-0 hover:bg-primary-100/60"
                     >
                       <td className="px-4 py-3">
-                        <p className="font-medium text-neutral-900">{r.nombre}</p>
-                        <p className="text-xs text-neutral-500">{r.id}</p>
+                        <p className="font-medium text-neutral-900">{r.campana}</p>
+                        <p className="text-xs text-neutral-500">{r.campanaId}</p>
                       </td>
                       <td className="px-4 py-3 text-neutral-800">
-                        {r.ciudad}
-                        <span className="block text-xs text-neutral-500">{r.estado}</span>
+                        {rol === "dueno" ? r.ciudad : r.marca}
                       </td>
-                      <td className="px-4 py-3 text-neutral-800">{r.categoria}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-neutral-800">
+                        {formatoFecha(r.inicio)} - {formatoFecha(r.fin)}
+                      </td>
                       <td className="px-4 py-3">
-                        <EstatusBadge valor={r.estatus} />
+                        <EstatusBadge valor={r.estatusCampana ?? "—"} />
                       </td>
                       <td className="px-4 py-3 text-neutral-800">{r.dueno}</td>
                       <td className="px-4 py-3 text-right">
@@ -214,19 +231,18 @@ function Dashboard() {
               </table>
             </div>
 
-            {/* Tarjetas móvil */}
             <div className="divide-y divide-neutral-200 md:hidden">
               {filas.map((r) => (
                 <div key={r.id} className="p-4">
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-neutral-900">{r.nombre}</p>
-                      <p className="text-xs text-neutral-500">{r.id}</p>
+                      <p className="truncate font-medium text-neutral-900">{r.campana}</p>
+                      <p className="text-xs text-neutral-500">{r.campanaId}</p>
                     </div>
-                    <EstatusBadge valor={r.estatus} />
+                    <EstatusBadge valor={r.estatusCampana ?? "—"} />
                   </div>
                   <p className="mt-2 text-sm text-neutral-600">
-                    {r.ciudad} · {r.categoria}
+                    {r.ciudad} · {formatoFecha(r.inicio)} - {formatoFecha(r.fin)}
                   </p>
                   <div className="mt-3 flex justify-end">
                     <button
@@ -240,11 +256,7 @@ function Dashboard() {
               ))}
             </div>
 
-            <Paginacion
-              pagina={paginaActual}
-              totalPaginas={totalPaginas}
-              onChange={setPagina}
-            />
+            <Paginacion pagina={paginaActual} totalPaginas={totalPaginas} onChange={setPagina} />
           </>
         )}
       </div>
