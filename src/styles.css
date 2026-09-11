@@ -4,6 +4,42 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Paleta de marca OOH (fidelidad Figma) */
+@theme {
+  --font-sans:
+    "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-primary-900: #1d143d;
+  --color-primary-700: #43327b;
+  --color-primary-600: #5a459e;
+  --color-primary-200: #ccbef0;
+  --color-primary-100: #eae3fa;
+
+  --color-neutral-900: #0f172a;
+  --color-neutral-800: #1f2937;
+  --color-neutral-700: #374151;
+  --color-neutral-600: #4b5563;
+  --color-neutral-500: #6b7280;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-50: #f9fafb;
+
+  --color-secondary-600: #1fa0a8;
+  --color-tertiary-500: #de5d6a;
+
+  --color-success-text: #1b8755;
+  --color-success-bg: #eefbf4;
+  --color-success-border: #96e2ba;
+  --color-warning-text: #d97706;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #fde047;
+  --color-error-text: #dc2626;
+  --color-error-bg: #fef2f2;
+  --color-error-border: #fca5a5;
+}
+
 /*
  * Design system definition.
  *
