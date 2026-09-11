@@ -140,6 +140,10 @@ function mulberry32(seed: number) {
   };
 }
 
+function pick<T>(arr: T[], rand: () => number): T {
+  return arr[Math.floor(rand() * arr.length)] as T;
+}
+
 function pad(n: number, len: number) {
   return String(n).padStart(len, "0");
 }
@@ -154,20 +158,20 @@ export function generarRegistros(): Registro[] {
   const rand = mulberry32(20260911);
   const out: Registro[] = [];
   for (let i = 0; i < 1000; i++) {
-    const loc = CIUDADES[Math.floor(rand() * CIUDADES.length)];
-    const categoria = CATEGORIAS[Math.floor(rand() * CATEGORIAS.length)];
-    const estatus = ESTATUS_SITIO[Math.floor(rand() * ESTATUS_SITIO.length)];
-    const dueno = DUENOS[Math.floor(rand() * DUENOS.length)];
-    const vialidad = VIALIDADES[Math.floor(rand() * VIALIDADES.length)];
+    const loc = pick(CIUDADES, rand);
+    const categoria = pick(CATEGORIAS, rand);
+    const estatus = pick(ESTATUS_SITIO, rand);
+    const dueno = pick(DUENOS, rand);
+    const vialidad = pick(VIALIDADES, rand);
     const asignado = rand() > 0.28 && estatus !== "Disponible";
-    const marca = asignado ? MARCAS[Math.floor(rand() * MARCAS.length)] : null;
+    const marca = asignado ? pick(MARCAS, rand) : null;
     const inicioOffset = Math.floor(rand() * 300);
     const dur = 30 + Math.floor(rand() * 90);
-    const campanaNombre = CAMPANAS[Math.floor(rand() * CAMPANAS.length)];
+    const campanaNombre = pick(CAMPANAS, rand);
 
     out.push({
       id: `ST-${pad(1000 + i, 5)}`,
-      nombre: `${categoria.split(" ")[0]} ${vialidad.replace(/^(Av\.|Blvd\.|Calzada|Carretera|Periférico)\s?/, "")} ${pad(
+      nombre: `${categoria.split(" ")[0] ?? categoria} ${vialidad.replace(/^(Av\.|Blvd\.|Calzada|Carretera|Periférico)\s?/, "")} ${pad(
         Math.floor(rand() * 900) + 100,
         3,
       )}`,
@@ -186,7 +190,7 @@ export function generarRegistros(): Registro[] {
       inicio: marca ? fecha(rand, inicioOffset) : null,
       fin: marca ? fecha(rand, inicioOffset + dur) : null,
       estatusCampana: marca
-        ? ESTATUS_CAMPANA[Math.floor(rand() * ESTATUS_CAMPANA.length)]
+        ? pick(ESTATUS_CAMPANA, rand)
         : null,
       urlRepositorio: `https://media.ooh.mx/arte/${pad(1000 + i, 5)}`,
       arteAprobado: rand() > 0.45,
@@ -197,7 +201,7 @@ export function generarRegistros(): Registro[] {
 
 export function formatoFecha(iso: string | null) {
   if (!iso) return "—";
-  const [y, m, d] = iso.split("-");
+  const [y, m, d] = iso.split("-") as [string, string, string];
   return `${d}/${m}/${y.slice(2)}`;
 }
 
