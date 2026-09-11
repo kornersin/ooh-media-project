@@ -322,6 +322,9 @@ export function RegistroDrawer({
           </button>
         </section>
       )}
+      </>
+      )}
     </Drawer>
+
   );
 }
